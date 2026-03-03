@@ -40,6 +40,8 @@ end
 PIXEL.RegisterFont("UI.FrameTitle", "Open Sans Bold", 22)
 
 function PANEL:Init()
+	self.OGWidth = 0
+	self.OGHeight = 0
 	self.CloseButton = vgui.Create("PIXEL.ImageButton", self)
 	self.CloseButton:SetImageURL("https://pixel-cdn.lythium.dev/i/fh640z2o")
 	self.CloseButton:SetNormalColor(PIXEL.Colors.PrimaryText)
@@ -68,6 +70,35 @@ function PANEL:Init()
 		oldMakePopup(self)
 		self:Open()
 	end
+end
+
+function PANEL:SetSize(w, h)
+	if (self.OGWidth == 0 and self.OGHeight == 0) then
+		self.OGWidth = w
+		self.OGHeight = h
+		local scaledWidth = PIXEL.Scale(w)
+		local scaledHeight = PIXEL.Scale(h)
+		BaseClass.SetSize(self, scaledWidth, scaledHeight)
+		return
+	end
+	BaseClass.SetSize(self, w, h)
+end
+
+function PANEL:ResizeCheck()
+	if self.ResizeOnScreenSizeChange then
+		local w = PIXEL.Scale(self.OGWidth)
+		local h = PIXEL.Scale(self.OGHeight)
+
+		self:SetSize(w, h)
+		self:Center()
+
+		self:InvalidateLayout(true) -- Important!
+	end
+end
+
+-- RAMSAY - ResizeOnScreenSizeChange
+function PANEL:OnScreenSizeChanged(oldW, oldH, newW, newH)
+	self:ResizeCheck()
 end
 
 function PANEL:DragThink(targetPanel, hoverPanel)

@@ -14,7 +14,7 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
-
+DEFINE_BASECLASS("EditablePanel")
 local PANEL = {}
 
 AccessorFunc(PANEL, "Draggable", "Draggable", FORCE_BOOL)

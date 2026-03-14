@@ -19,12 +19,16 @@ local PANEL = {}
 
 AccessorFunc(PANEL, "Draggable", "Draggable", FORCE_BOOL)
 AccessorFunc(PANEL, "Sizable", "Sizable", FORCE_BOOL)
-AccessorFunc(PANEL, "MinWidth", "MinWidth", FORCE_NUMBER)
-AccessorFunc(PANEL, "MinHeight", "MinHeight", FORCE_NUMBER)
 AccessorFunc(PANEL, "ScreenLock", "ScreenLock", FORCE_BOOL)
 AccessorFunc(PANEL, "RemoveOnClose", "RemoveOnClose", FORCE_BOOL)
 
+AccessorFunc(PANEL, "MinWidth", "MinWidth", FORCE_NUMBER)
+AccessorFunc(PANEL, "MinHeight", "MinHeight", FORCE_NUMBER)
+AccessorFunc(PANEL, "HeaderH", "HeaderH", FORCE_NUMBER)
+AccessorFunc(PANEL, "Padding", "Padding", FORCE_NUMBER)
+
 AccessorFunc(PANEL, "Title", "Title", FORCE_STRING)
+AccessorFunc(PANEL, "TitleFont", "TitleFont", FORCE_STRING)
 AccessorFunc(PANEL, "ImgurID", "ImgurID", FORCE_STRING) -- Deprecated
 AccessorFunc(PANEL, "ImageURL", "ImageURL", FORCE_STRING)
 
@@ -56,6 +60,10 @@ function PANEL:Init()
 	self.ExtraButtons = {}
 
 	self:SetTitle("PIXEL Frame")
+	self:SetTitleFont("UI.FrameTitle")
+
+	self:SetHeaderH(PIXEL.Scale(30))
+	self:SetPadding(PIXEL.Scale(6))
 
 	self:SetDraggable(true)
 	self:SetScreenLock(true)
@@ -118,7 +126,7 @@ function PANEL:DragThink(targetPanel, hoverPanel)
 	end
 
 	local _, screenY = targetPanel:LocalToScreen(0, 0)
-	if (hoverPanel or targetPanel).Hovered and targetPanel:GetDraggable() and mousey < (screenY + PIXEL.Scale(30)) then
+	if (hoverPanel or targetPanel).Hovered and targetPanel:GetDraggable() and mousey < (screenY + self:GetHeaderH()) then
 		targetPanel:SetCursor("sizeall")
 		return true
 	end
@@ -164,13 +172,13 @@ function PANEL:OnMousePressed()
 	local screenX, screenY = self:LocalToScreen(0, 0)
 	local mouseX, mouseY = gui.MouseX(), gui.MouseY()
 
-	if self.Sizable and mouseX > (screenX + self:GetWide() - PIXEL.Scale(30)) and mouseY > (screenY + self:GetTall() - PIXEL.Scale(30)) then
+	if self.Sizable and mouseX > (screenX + self:GetWide() - self:GetHeaderH()) and mouseY > (screenY + self:GetTall() - self:GetHeaderH()) then
 		self.Sizing = {mouseX - self:GetWide(), mouseY - self:GetTall()}
 		self:MouseCapture(true)
 		return
 	end
 
-	if self:GetDraggable() and mouseY < (screenY + PIXEL.Scale(30)) then
+	if self:GetDraggable() and mouseY < (screenY + self:GetHeaderH()) then
 		self.Dragging = {mouseX - self.x, mouseY - self.y}
 		self:MouseCapture(true)
 		return
@@ -218,7 +226,7 @@ end
 function PANEL:LayoutContent(w, h) end
 
 function PANEL:PerformLayout(w, h)
-	local headerH = PIXEL.Scale(30)
+	local headerH = self:GetHeaderH()
 	local btnPad = PIXEL.Scale(6)
 	local btnSpacing = PIXEL.Scale(6)
 
@@ -242,7 +250,7 @@ function PANEL:PerformLayout(w, h)
 		self.SideBar:SetSize(PIXEL.Scale(200), h - headerH)
 	end
 
-	local padding = PIXEL.Scale(6)
+	local padding = self:GetPadding()
 	self:DockPadding(self.SideBar and PIXEL.Scale(200) + padding or padding, headerH + padding, padding, padding)
 
 	self:LayoutContent(w, h)
@@ -272,17 +280,17 @@ function PANEL:PaintHeader(x, y, w, h)
 	if imageURL then
 		local iconSize = h * .6
 		PIXEL.DrawImage(PIXEL.Scale(6), x + (h - iconSize) / 2, y + iconSize, iconSize, imageURL, color_white)
-		PIXEL.DrawSimpleText(self:GetTitle(), "UI.FrameTitle", x + PIXEL.Scale(12) + iconSize, y + h / 2, PIXEL.Colors.PrimaryText, nil, TEXT_ALIGN_CENTER)
+		PIXEL.DrawSimpleText(self:GetTitle(), self:GetTitleFont(), x + PIXEL.Scale(12) + iconSize, y + h / 2, PIXEL.Colors.PrimaryText, nil, TEXT_ALIGN_CENTER)
 		return
 	end
 
-	PIXEL.DrawSimpleText(self:GetTitle(), "UI.FrameTitle", x + PIXEL.Scale(6), y + h / 2, PIXEL.Colors.PrimaryText, nil, TEXT_ALIGN_CENTER)
+	PIXEL.DrawSimpleText(self:GetTitle(), self:GetTitleFont(), x + PIXEL.Scale(6), y + h / 2, PIXEL.Colors.PrimaryText, nil, TEXT_ALIGN_CENTER)
 end
 
 function PANEL:Paint(w, h)
 	self:PaintBefore(w, h)
 	PIXEL.DrawRoundedBox(PIXEL.Scale(4), 0, 0, w, h, PIXEL.Colors.Background)
-	self:PaintHeader(0, 0, w, PIXEL.Scale(30))
+	self:PaintHeader(0, 0, w, self:GetHeaderH())
 end
 
 function PANEL:PaintBefore(w, h)

@@ -19,6 +19,7 @@ local PANEL = {}
 
 AccessorFunc(PANEL, "Name", "Name", FORCE_STRING)
 AccessorFunc(PANEL, "Color", "Color")
+AccessorFunc(PANEL, "CenterItems", "CenterItems", FORCE_BOOL)
 
 PIXEL.RegisterFont("UI.NavbarItem", "Open Sans SemiBold", 22)
 
@@ -30,10 +31,12 @@ function PANEL:Init()
     self.HoverCol = PIXEL.Colors.SecondaryText
 
     self.TextCol = PIXEL.CopyColor(self.NormalCol)
+    self.Font = "UI.NavbarItem"
+    self.CenterItems = false
 end
 
 function PANEL:GetItemSize()
-    PIXEL.SetFont("UI.NavbarItem")
+    PIXEL.SetFont(self.Font)
     return PIXEL.GetTextSize(self:GetName())
 end
 
@@ -47,15 +50,18 @@ function PANEL:Paint(w, h)
     local animTime = FrameTime() * 12
     self.TextCol = PIXEL.LerpColor(animTime, self.TextCol, textCol)
 
-    PIXEL.DrawSimpleText(self:GetName(), "UI.NavbarItem", w / 2, h / 2, self.TextCol, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    PIXEL.DrawSimpleText(self:GetName(), self.Font, w / 2, h / 2, self.TextCol, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end
 
 vgui.Register("PIXEL.NavbarItem", PANEL, "PIXEL.Button")
 
 PANEL = {}
 
+AccessorFunc(PANEL, "CenterItems", "CenterItems", FORCE_BOOL)
+
 function PANEL:Init()
     self.Items = {}
+    self.CenterItems = false
 
     self.SelectionX = 0
     self.SelectionW = 0
@@ -67,9 +73,11 @@ end
 function PANEL:AddItem(id, name, doClick, order, color)
     local btn = vgui.Create("PIXEL.NavbarItem", self)
 
+    btn.Font = self.Font or "UI.NavbarItem"
     btn:SetName(name:upper())
-    btn:SetZPos(order or table.Count(self.Items) + 1)
+    btn.Order = order or table.Count(self.Items) + 1
     btn:SetColor((IsColor(color) and color) or PIXEL.Colors.Primary)
+
     btn.Function = doClick
 
     btn.DoClick = function(s)
@@ -106,9 +114,38 @@ function PANEL:SelectItem(id)
 end
 
 function PANEL:PerformLayout(w, h)
-    for k,v in pairs(self.Items) do
-        v:Dock(LEFT)
-        v:SetWide(v:GetItemSize() + PIXEL.Scale(30))
+    local totalWidth = 0
+    local items = {}
+
+    for _, v in pairs(self.Items) do
+        local itemW = v:GetItemSize() + PIXEL.Scale(30)
+        table.insert(items, {panel = v, width = itemW, order = v.Order})
+    end
+
+    table.sort(items, function(a, b)
+        return a.order < b.order
+    end)
+
+    for _, data in ipairs(items) do
+        totalWidth = totalWidth + data.width
+    end
+
+    local startX = 0
+    if self.CenterItems then
+        startX = (w - totalWidth) * 0.5
+    end
+
+    local x = startX
+
+    for _, data in ipairs(items) do
+        local v = data.panel
+        local itemW = data.width
+
+        v:Dock(NODOCK)
+        v:SetPos(x, 0)
+        v:SetSize(itemW, h)
+
+        x = x + itemW
     end
 end
 

@@ -18,6 +18,8 @@
 local PANEL = {}
 
 AccessorFunc(PANEL, "Text", "Text", FORCE_STRING)
+AccessorFunc(PANEL, "TextColor", "TextColor", FORCE_COLOR)
+AccessorFunc(PANEL, "DisabledTextColor", "DisabledTextColor", FORCE_COLOR)
 AccessorFunc(PANEL, "TextAlign", "TextAlign", FORCE_NUMBER)
 AccessorFunc(PANEL, "TextSpacing", "TextSpacing", FORCE_NUMBER)
 AccessorFunc(PANEL, "Font", "Font", FORCE_STRING)
@@ -29,6 +31,8 @@ function PANEL:Init()
     self:SetTextAlign(TEXT_ALIGN_CENTER)
     self:SetTextSpacing(PIXEL.Scale(6))
     self:SetFont("UI.TextButton")
+    self:SetTextColor(PIXEL.Colors.PrimaryText)
+    self:SetDisabledTextColor(PIXEL.Colors.DisabledText)
 
     self:SetSize(PIXEL.Scale(100), PIXEL.Scale(30))
 end
@@ -43,11 +47,11 @@ function PANEL:PaintExtra(w, h)
     local textX = (textAlign == TEXT_ALIGN_CENTER and w / 2) or (textAlign == TEXT_ALIGN_RIGHT and w - self:GetTextSpacing()) or self:GetTextSpacing()
 
     if not self:IsEnabled() then
-        PIXEL.DrawSimpleText(self:GetText(), self:GetFont(), textX, h / 2, PIXEL.Colors.DisabledText, textAlign, TEXT_ALIGN_CENTER)
+        PIXEL.DrawSimpleText(self:GetText(), self:GetFont(), textX, h / 2, self:GetDisabledTextColor(), textAlign, TEXT_ALIGN_CENTER)
         return
     end
 
-    PIXEL.DrawSimpleText(self:GetText(), self:GetFont(), textX, h / 2, PIXEL.Colors.PrimaryText, textAlign, TEXT_ALIGN_CENTER)
+    PIXEL.DrawSimpleText(self:GetText(), self:GetFont(), textX, h / 2, self:GetTextColor(), textAlign, TEXT_ALIGN_CENTER)
 end
 
 vgui.Register("PIXEL.TextButton", PANEL, "PIXEL.Button")

@@ -19,10 +19,12 @@ local PANEL = {}
 
 AccessorFunc(PANEL, "IsToggle", "IsToggle", FORCE_BOOL)
 AccessorFunc(PANEL, "Toggle", "Toggle", FORCE_BOOL)
+AccessorFunc(PANEL, "CornerRadius", "CornerRadius", FORCE_NUMBER)
 
 function PANEL:Init()
     self:SetIsToggle(false)
     self:SetToggle(false)
+    self:SetCornerRadius(PIXEL.Scale(4))
     self:SetMouseInputEnabled(true)
 
     self:SetCursor("hand")
@@ -105,7 +107,7 @@ function PANEL:PaintExtra(w, h) end
 
 function PANEL:Paint(w, h)
     if not self:IsEnabled() then
-        PIXEL.DrawRoundedBox(PIXEL.Scale(4), 0, 0, w, h, self.DisabledCol)
+        PIXEL.DrawRoundedBox(self:GetCornerRadius(), 0, 0, w, h, self.DisabledCol)
         self:PaintExtra(w, h)
         return
     end
@@ -120,7 +122,7 @@ function PANEL:Paint(w, h)
 
     self.BackgroundCol = PIXEL.LerpColor(FrameTime() * 12, self.BackgroundCol, bgCol)
 
-    PIXEL.DrawRoundedBox(PIXEL.Scale(4), 0, 0, w, h, self.BackgroundCol)
+    PIXEL.DrawRoundedBox(self:GetCornerRadius(), 0, 0, w, h, self.BackgroundCol)
 
     self:PaintExtra(w, h)
 end

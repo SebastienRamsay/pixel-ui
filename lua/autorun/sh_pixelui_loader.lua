@@ -55,7 +55,7 @@ hook.Run("PIXEL.UI.FullyLoaded")
 
 if CLIENT then return end
 
-resource.AddWorkshop("2468112758")
+-- resource.AddWorkshop("2468112758")
 
 hook.Add("Think", "PIXEL.UI.VersionChecker", function()
 	hook.Remove("Think", "PIXEL.UI.VersionChecker")

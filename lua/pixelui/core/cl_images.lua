@@ -40,6 +40,10 @@ local function processQueue()
             function(body, len, headers, code)
                 if len > 2097152 or code ~= 200 then
                     materials[filePath] = Material("nil")
+                elseif not useProxy and util.CRC(body) == PIXEL.ImgurBlockedCRC then
+                    useProxy = true
+                    processQueue()
+                    return
                 else
                     local writeFilePath = filePath
                     if not endsWithExtension(filePath) then
@@ -65,6 +69,10 @@ local function processQueue()
     end
 end
 
+--- Fetches or loads an image and calls back with a Material.
+---@param url string Image URL to fetch/cache.
+---@param callback fun(mat: IMaterial) Callback that receives the cached material.
+---@param matSettings string|nil Optional material settings string.
 function PIXEL.GetImage(url, callback, matSettings)
     local protocol = url:match("^([%a]+://)")
 
@@ -98,6 +106,13 @@ function PIXEL.GetImage(url, callback, matSettings)
         readFilePath = filePath .. ".png"
     end
 
+    if PIXEL.ImgurBlockedCRC and file.Exists(readFilePath, "DATA")
+        and util.CRC(file.Read(readFilePath, "DATA")) == PIXEL.ImgurBlockedCRC then
+        file.Delete(readFilePath)
+        materials[filePath] = nil
+        useProxy = true
+    end
+
     if materials[filePath] then
         callback(materials[filePath])
     elseif file.Exists(readFilePath, "DATA") then
@@ -122,6 +137,11 @@ function PIXEL.GetImage(url, callback, matSettings)
 end
 
 
+--- Loads an Imgur PNG by ID and returns a Material in the callback.
+---@param id string Imgur image ID (without extension).
+---@param callback fun(mat: IMaterial) Callback that receives the cached material.
+---@param _ any|nil Unused legacy argument.
+---@param matSettings string|nil Optional material settings string.
 function PIXEL.GetImgur(id, callback, _, matSettings)
     local url = "https://i.imgur.com/" .. id .. ".png"
     PIXEL.GetImage(url, callback, matSettings)
